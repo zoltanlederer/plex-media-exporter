@@ -7,8 +7,10 @@ Connects to a Plex server using the plexapi library and exports the entire movie
 from plexapi.server import PlexServer
 from config import PLEX_URL, PLEX_TOKEN
 
+# Connect to the Plex server using URL and token from config.py
 plex = PlexServer(PLEX_URL, PLEX_TOKEN)
 
+# List all libraries to confirm the connection works
 for library in plex.library.sections():
     print(library.title, library.type)
 
