@@ -59,9 +59,21 @@ media_list = []
 media = plex.library.section(selected_library)
 
 # Add all media details to a list of dictionaries
-for item in media.all():
-    media_list.append({'title': item.title, 'titleSort': item.titleSort, 'year': item.year, 'rating': item.rating, 'genres': get_genres(item.genres), 'duration': item.duration // 60000, 'studio': item.studio, 'tagline': item.tagline, 'summary': item.summary, 'originallyAvailableAt': item.originallyAvailableAt, 'imdb_id': get_guid(item.guids, 'imdb'), 'tmdb_id': get_guid(item.guids, 'tmdb')}) 
-
+for item in media.all():    
+    media_list.append({
+        'title': item.title,
+        'titleSort': item.titleSort,
+        'year': item.year,
+        'rating': item.rating,
+        'genres': get_genres(item.genres),
+        'duration': item.duration // 60000,
+        'studio': item.studio,
+        'tagline': item.tagline,
+        'summary': item.summary,
+        'originallyAvailableAt': item.originallyAvailableAt.strftime('%Y-%m-%d') if item.originallyAvailableAt else None,
+        'imdb_id': get_guid(item.guids, 'imdb'),
+        'tmdb_id': get_guid(item.guids, 'tmdb')
+    })
 
 # Write collected media data to CSV
 with open(f"{selected_library}.csv", 'w', newline='') as csvfile: # handles closing the file automatically    
@@ -69,3 +81,4 @@ with open(f"{selected_library}.csv", 'w', newline='') as csvfile: # handles clos
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader() # writes the first row with column names
     writer.writerows(media_list) # writes all the dictionaries in one go
+
