@@ -53,20 +53,19 @@ def get_genres(genres):
 libraries = list_libraries(plex)
 selected_library = library_confirmation(libraries)
 
-list_of_movies = []
+media_list = []
 
 # Access the selected library
-movies = plex.library.section(selected_library)
+media = plex.library.section(selected_library)
 
-# Add all movie details to a list of dictionaries
-for movie in movies.all():
-    list_of_movies.append({'title': movie.title, 'titleSort': movie.titleSort, 'year': movie.year, 'rating': movie.rating, 'genres': get_genres(movie.genres), 'duration': movie.duration // 60000, 'studio': movie.studio, 'tagline': movie.tagline, 'summary': movie.summary, 'originallyAvailableAt': movie.originallyAvailableAt, 'imdb_id': get_guid(movie.guids, 'imdb'), 'tmdb_id': get_guid(movie.guids, 'tmdb')}) 
+# Add all media details to a list of dictionaries
+for item in media.all():
+    media_list.append({'title': item.title, 'titleSort': item.titleSort, 'year': item.year, 'rating': item.rating, 'genres': get_genres(item.genres), 'duration': item.duration // 60000, 'studio': item.studio, 'tagline': item.tagline, 'summary': item.summary, 'originallyAvailableAt': item.originallyAvailableAt, 'imdb_id': get_guid(item.guids, 'imdb'), 'tmdb_id': get_guid(item.guids, 'tmdb')}) 
 
-print(list_of_movies)
 
-# Write collected movie data to CSV
-with open('export.csv', 'w', newline='') as csvfile: # with open(...) — handles closing the file automatically    
+# Write collected media data to CSV
+with open(f"{selected_library}.csv", 'w', newline='') as csvfile: # handles closing the file automatically    
     fieldnames = ['title','titleSort','year','rating','genres','duration','studio','tagline','summary','originallyAvailableAt','imdb_id','tmdb_id'] # defines the column headers, and the order they appear in the CSV
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader() # writes the first row with column names
-    writer.writerows(list_of_movies) # writes all the dictionaries in one go
+    writer.writerows(media_list) # writes all the dictionaries in one go
