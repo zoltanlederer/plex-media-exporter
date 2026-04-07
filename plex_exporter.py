@@ -4,6 +4,7 @@ Plex Media Exporter
 Connects to a Plex server using the plexapi library and exports the entire movie and TV show library to a CSV file. Runs from the terminal — pulls metadata (title, year, genre, rating, runtime) and saves everything into a clean CSV file.
 """
 
+import csv
 from plexapi.server import PlexServer
 from config import PLEX_URL, PLEX_TOKEN
 
@@ -41,8 +42,9 @@ for movie in movies.all():
 
 print(list_of_movies)
 
-
-# g = movies.all()[0]
-# # print(g.genres)
-# ge = get_genres(g.genres)
-# print('GE', ge)
+# Write collected movie data to CSV
+with open('export.csv', 'w', newline='') as csvfile: # with open(...) — handles closing the file automatically    
+    fieldnames = ['title','titleSort','year','rating','genres','duration','studio','tagline','summary','originallyAvailableAt','imdb_id','tmdb_id'] # defines the column headers, and the order they appear in the CSV
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader() # writes the first row with column names
+    writer.writerows(list_of_movies) # writes all the dictionaries in one go
