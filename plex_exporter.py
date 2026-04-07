@@ -13,7 +13,26 @@ plex = PlexServer(PLEX_URL, PLEX_TOKEN)
 
 # FOR REFERENCE: List all libraries to confirm the connection works
 # for library in plex.library.sections():
-#     print(library.title, library.type)
+    # print(library.title, library.type)
+
+
+def list_libraries(plex):
+    """ Fetch and display all Plex libraries, and return them as a list of dictionaries """
+    libraries = list()
+    # enumerate() gives the number and the item at the same time
+    for index, library in enumerate(plex.library.sections(), start=1):
+        print("-" * 30)
+        print(f"{index}: {library.title}")
+        libraries.append({'library_number': index, 'library_title': library.title})
+    return libraries
+
+def library_confirmation(libraries):
+    """ Display a prompt for the user to select a library and return the selected library name """
+    print("-" * 70)
+    selected_library = int(input('Select a library (enter the number): '))
+    selected_library = libraries[selected_library-1]['library_title']
+    # print(selected_library)
+    return selected_library
 
 def get_guid(guid, provider):
     """ Extract the external ID for a given provider (imdb, tmdb) """
@@ -31,10 +50,13 @@ def get_genres(genres):
     return ', '.join(all_genres)
 
 
+libraries = list_libraries(plex)
+selected_library = library_confirmation(libraries)
+
 list_of_movies = []
 
-# Access the movies library (Filmek)
-movies = plex.library.section('Filmek')
+# Access the selected library
+movies = plex.library.section(selected_library)
 
 # Add all movie details to a list of dictionaries
 for movie in movies.all():
