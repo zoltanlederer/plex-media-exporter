@@ -13,7 +13,7 @@ plex = PlexServer(PLEX_URL, PLEX_TOKEN)
 
 # FOR REFERENCE: List all libraries to confirm the connection works
 # for library in plex.library.sections():
-    # print(library.title, library.type)
+#     print(library.title, library.type)
 
 
 def list_libraries(plex):
@@ -23,14 +23,15 @@ def list_libraries(plex):
     for index, library in enumerate(plex.library.sections(), start=1):
         print("-" * 30)
         print(f"{index}: {library.title}")
-        libraries.append({'library_number': index, 'library_title': library.title})
+        libraries.append({'library_number': index, 'library_title': library.title, 'library_type': library.type})
     return libraries
 
 def library_confirmation(libraries):
     """ Display a prompt for the user to select a library and return the selected library name """
     print("-" * 70)
     selected_library = int(input('Select a library (enter the number): '))
-    selected_library = libraries[selected_library-1]['library_title']
+    # selected_library = libraries[selected_library-1]['library_title']
+    selected_library = libraries[selected_library-1]
     # print(selected_library)
     return selected_library
 
@@ -52,19 +53,21 @@ def get_genres(genres):
 
 libraries = list_libraries(plex)
 selected_library = library_confirmation(libraries)
+selected_title = selected_library['library_title']
+selected_type = selected_library['library_type']
 
+# Store all media items
 media_list = []
 
 # Access the selected library
-media = plex.library.section(selected_library)
+media = plex.library.section(selected_title)
 
 # Add all media details to a list of dictionaries
-for item in media.all():    
-    media_list.append({
+for item in media.all():
+    item_data = {
         'title': item.title,
         'titleSort': item.titleSort,
         'year': item.year,
-        'rating': item.rating,
         'genres': get_genres(item.genres),
         'duration': item.duration // 60000,
         'studio': item.studio,
@@ -73,11 +76,41 @@ for item in media.all():
         'originallyAvailableAt': item.originallyAvailableAt.strftime('%Y-%m-%d') if item.originallyAvailableAt else None,
         'imdb_id': get_guid(item.guids, 'imdb'),
         'tmdb_id': get_guid(item.guids, 'tmdb')
-    })
+    }
+
+    if selected_type == 'show':
+        item_data['seasonCount'] = item.seasonCount
+        item_data['leafCount'] = item.leafCount
+
+    media_list.append(item_data) 
+
 
 # Write collected media data to CSV
-with open(f"{selected_library}.csv", 'w', newline='') as csvfile: # handles closing the file automatically    
-    fieldnames = ['title','titleSort','year','rating','genres','duration','studio','tagline','summary','originallyAvailableAt','imdb_id','tmdb_id'] # defines the column headers, and the order they appear in the CSV
+with open(f"{selected_title}.csv", 'w', newline='') as csvfile: # handles closing the file automatically    
+    movie_fieldnames = [
+        'title',
+        'titleSort',
+        'year',
+        'genres',
+        'duration',
+        'studio',
+        'tagline',
+        'summary',
+        'originallyAvailableAt',
+        'imdb_id',
+        'tmdb_id'
+    ] # defines the column headers, and the order they appear in the CSV
+    
+    show_fieldnames = [
+        'seasonCount',
+        'leafCount',
+    ] # defines the column headers, and the order they appear in the CSV
+    
+    if selected_type == 'show':
+        fieldnames = movie_fieldnames + show_fieldnames
+    else:
+        fieldnames = movie_fieldnames
+
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader() # writes the first row with column names
     writer.writerows(media_list) # writes all the dictionaries in one go
