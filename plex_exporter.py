@@ -4,6 +4,7 @@ Plex Media Exporter
 Connects to a Plex server using the plexapi library and exports the entire movie and TV show library to a CSV file. Runs from the terminal — pulls metadata (title, year, genre, rating, runtime) and saves everything into a clean CSV file.
 """
 
+import sys
 import csv
 from plexapi.server import PlexServer
 from config import PLEX_URL, PLEX_TOKEN
@@ -32,7 +33,11 @@ def library_confirmation(libraries):
     print("-" * 70)
     while True:  # keep asking until valid input is received
         try:
-            number = int(input('Select a library (enter the number): '))
+            number = input("Type a number to select, or 'q' to quit: ")
+            if number == 'q':
+                sys.exit()
+            
+            number = int(number)
             if 1 <= number <= len(libraries):  # check if number is within valid range
                 return libraries[number - 1]  # return the full library dictionary
             else:
