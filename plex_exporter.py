@@ -80,7 +80,7 @@ for item in media.all():
         'titleSort': item.titleSort,
         'year': item.year,
         'genres': get_genres(item.genres),
-        'duration': item.duration // 60000,
+        'duration': item.duration // 60000 if item.duration else None,
         'studio': item.studio,
         'tagline': item.tagline,
         'summary': item.summary,
