@@ -26,14 +26,20 @@ def list_libraries(plex):
         libraries.append({'library_number': index, 'library_title': library.title, 'library_type': library.type})
     return libraries
 
+
 def library_confirmation(libraries):
     """ Display a prompt for the user to select a library and return the selected library name """
     print("-" * 70)
-    selected_library = int(input('Select a library (enter the number): '))
-    # selected_library = libraries[selected_library-1]['library_title']
-    selected_library = libraries[selected_library-1]
-    # print(selected_library)
-    return selected_library
+    while True:  # keep asking until valid input is received
+        try:
+            number = int(input('Select a library (enter the number): '))
+            if 1 <= number <= len(libraries):  # check if number is within valid range
+                return libraries[number - 1]  # return the full library dictionary
+            else:
+                print(f'Please enter a number between 1 and {len(libraries)}.')
+        except ValueError:  # int() raises ValueError if the input is not a number
+            print('Invalid input. Please enter a number.')
+
 
 def get_guid(guid, provider):
     """ Extract the external ID for a given provider (imdb, tmdb) """
