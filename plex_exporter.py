@@ -5,6 +5,7 @@ Connects to a Plex server using the plexapi library and exports the entire movie
 """
 
 import sys
+import os
 import csv
 from plexapi.server import PlexServer
 from config import PLEX_URL, PLEX_TOKEN
@@ -96,8 +97,23 @@ for item in media.all():
     media_list.append(item_data) 
 
 
+# Check if filename already exists and finalise the filename
+filename = f"{selected_title}.csv"
+while True:
+    if os.path.exists(filename):
+        new_filename = input(f'The "{filename}" already exists. Press "Enter" to overwrite, type a new name, or "q" to quit: ')
+        if new_filename == 'q':  # file exists, user quit the program
+            sys.exit()
+        elif new_filename != '':  # file exists, user types a new name, loop again to recheck
+            filename = f"{new_filename}.csv"
+        else:  # file exists, user confirmed overwrite
+            break
+    else:
+        break  # file doesn't exist, continue
+
+
 # Write collected media data to CSV
-with open(f"{selected_title}.csv", 'w', newline='') as csvfile: # handles closing the file automatically    
+with open(f"{filename}", 'w', newline='') as csvfile: # handles closing the file automatically    
     movie_fieldnames = [
         'title',
         'titleSort',
