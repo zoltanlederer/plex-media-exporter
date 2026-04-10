@@ -73,9 +73,11 @@ media_list = []
 
 # Access the selected library
 media = plex.library.section(selected_title)
+all_items = media.all()
+total = len(all_items)
 
 # Add all media details to a list of dictionaries
-for item in media.all():
+for index, item in enumerate(all_items, start=1):
     item_data = {
         'title': item.title,
         'titleSort': item.titleSort,
@@ -94,13 +96,20 @@ for item in media.all():
         item_data['seasonCount'] = item.seasonCount
         item_data['leafCount'] = item.leafCount
 
-    media_list.append(item_data) 
+    media_list.append(item_data)
 
+    # Progress indicator while collecting data
+    # \r moves the cursor back to the start of the line
+    # end='' prevents a new line being printed
+    # flush=True forces it to display immediately
+    print(f"\rExporting... {index}/{total}", end='', flush=True)
+print()  # move to next line after progress is done
 
 # Check if filename already exists and finalise the filename
 filename = f"{selected_title}.csv"
 while True:
     if os.path.exists(filename):
+        print(f"-" * 70)
         new_filename = input(f'The "{filename}" already exists. Press "Enter" to overwrite, type a new name, or "q" to quit: ')
         if new_filename == 'q':  # file exists, user quit the program
             sys.exit()
