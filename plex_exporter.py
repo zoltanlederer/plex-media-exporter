@@ -21,7 +21,7 @@ except requests.exceptions.ConnectionError:
 except requests.exceptions.Timeout:
     print('Request timed out.')
     sys.exit()
-except Exception as error:
+except Exception:
     print('Something went wrong, please try again.')
     sys.exit()    
 
@@ -127,34 +127,47 @@ def get_filename(selected_title):
 
 def export_to_csv(media_list, filename, selected_type):
     """ Write collected media data to CSV """
-    with open(f"{filename}", 'w', newline='') as csvfile: # handles closing the file automatically    
-        movie_fieldnames = [
-            'title',
-            'titleSort',
-            'year',
-            'genres',
-            'duration',
-            'studio',
-            'tagline',
-            'summary',
-            'originallyAvailableAt',
-            'imdb_id',
-            'tmdb_id'
-        ] # defines the column headers, and the order they appear in the CSV
-        
-        show_fieldnames = [
-            'seasonCount',
-            'leafCount',
-        ] # defines the column headers, and the order they appear in the CSV
-        
-        if selected_type == 'show':
-            fieldnames = movie_fieldnames + show_fieldnames
-        else:
-            fieldnames = movie_fieldnames
+    try:
+        with open(f"{filename}", 'w', newline='') as csvfile: # handles closing the file automatically    
+            movie_fieldnames = [
+                'title',
+                'titleSort',
+                'year',
+                'genres',
+                'duration',
+                'studio',
+                'tagline',
+                'summary',
+                'originallyAvailableAt',
+                'imdb_id',
+                'tmdb_id'
+            ] # defines the column headers, and the order they appear in the CSV
+            
+            show_fieldnames = [
+                'seasonCount',
+                'leafCount',
+            ] # defines the column headers, and the order they appear in the CSV
+            
+            if selected_type == 'show':
+                fieldnames = movie_fieldnames + show_fieldnames
+            else:
+                fieldnames = movie_fieldnames
 
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader() # writes the first row with column names
-        writer.writerows(media_list) # writes all the dictionaries in one go
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader() # writes the first row with column names
+            writer.writerows(media_list) # writes all the dictionaries in one go
+    except PermissionError:
+        print(f'Permission denied. Could not write to "{filename}".')
+        sys.exit()
+    except OSError as error:
+        print(f'Could not create file: {error}')
+        sys.exit()
+    except Exception:
+        print('Something went wrong while writing the file.')
+        sys.exit()
+
+    print("-" * 70)
+    print(f"Export complete. {len(media_list)} items saved to {filename}.")
 
 
 # List and select library
