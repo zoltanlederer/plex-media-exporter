@@ -7,15 +7,23 @@ Connects to a Plex server using the plexapi library and exports the entire movie
 import sys
 import os
 import csv
+import requests
 from plexapi.server import PlexServer
 from config import PLEX_URL, PLEX_TOKEN
 
-# Connect to the Plex server using URL and token from config.py
-plex = PlexServer(PLEX_URL, PLEX_TOKEN)
 
-# FOR REFERENCE: List all libraries to confirm the connection works
-# for library in plex.library.sections():
-#     print(library.title, library.type)
+# Connect to the Plex server using URL and token from config.py
+try:
+    plex = PlexServer(PLEX_URL, PLEX_TOKEN)
+except requests.exceptions.ConnectionError:
+    print('Could not connect to Plex. Check your URL and token in config.py.')
+    sys.exit()
+except requests.exceptions.Timeout:
+    print('Request timed out.')
+    sys.exit()
+except Exception as error:
+    print('Something went wrong, please try again.')
+    sys.exit()    
 
 
 def list_libraries(plex):
