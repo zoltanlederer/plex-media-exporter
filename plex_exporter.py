@@ -25,6 +25,11 @@ except Exception:
     print('Something went wrong, please try again.')
     sys.exit()    
 
+print("=" * 70)
+print("Plex Media Exporter")
+print("Exports your Plex movie and TV show libraries to a CSV file.")
+print("Note: Music and photo libraries are not supported.")
+print("=" * 70)
 
 def list_libraries(plex):
     """ Fetch and display all Plex libraries, and return them as a list of dictionaries """
@@ -43,6 +48,7 @@ def library_confirmation(libraries):
     while True:  # keep asking until valid input is received
         try:
             number = input("Type a number to select, or 'q' to quit: ")
+            print("-" * 70)
             if number == 'q':
                 sys.exit()
             
@@ -168,6 +174,7 @@ def export_to_csv(media_list, filename, selected_type):
 
     print("-" * 70)
     print(f"Export complete. {len(media_list)} items saved to {filename}.")
+    print("-" * 70)
 
 
 # List and select library
