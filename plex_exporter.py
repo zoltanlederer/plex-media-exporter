@@ -71,91 +71,104 @@ def get_genres(genres):
     return ', '.join(all_genres)
 
 
+def collect_media(all_items, selected_type, total):
+    """ Collects the media information from the selected library """
+    media_list = [] # Store all media items
+    
+    # Add all media details to a list of dictionaries
+    for index, item in enumerate(all_items, start=1):
+        item_data = {
+            'title': item.title,
+            'titleSort': item.titleSort,
+            'year': item.year,
+            'genres': get_genres(item.genres),
+            'duration': item.duration // 60000 if item.duration else None,
+            'studio': item.studio,
+            'tagline': item.tagline,
+            'summary': item.summary,
+            'originallyAvailableAt': item.originallyAvailableAt.strftime('%Y-%m-%d') if item.originallyAvailableAt else None,
+            'imdb_id': get_guid(item.guids, 'imdb'),
+            'tmdb_id': get_guid(item.guids, 'tmdb')
+        }
+
+        if selected_type == 'show':
+            item_data['seasonCount'] = item.seasonCount
+            item_data['leafCount'] = item.leafCount
+
+        media_list.append(item_data)
+
+        # Progress indicator while collecting data
+        # \r moves the cursor back to the start of the line
+        # end='' prevents a new line being printed
+        # flush=True forces it to display immediately
+        print(f"\rExporting... {index}/{total}", end='', flush=True)
+    print()  # move to next line after progress is done
+    
+    return media_list
+
+
+def get_filename(selected_title):
+    """ Check if the filename already exists and return the final filename """
+    filename = f"{selected_title}.csv"
+    while True:
+        if os.path.exists(filename):
+            print(f"-" * 70)
+            new_filename = input(f'The "{filename}" already exists. Press "Enter" to overwrite, type a new name, or "q" to quit: ')
+            if new_filename == 'q':  # file exists, user quit the program
+                sys.exit()
+            elif new_filename != '':  # file exists, user types a new name, loop again to recheck
+                filename = f"{new_filename}.csv"
+            else:  # file exists, user confirmed overwrite
+                break
+        else:
+            break  # file doesn't exist, continue
+    return filename
+
+
+def export_to_csv(media_list, filename, selected_type):
+    """ Write collected media data to CSV """
+    with open(f"{filename}", 'w', newline='') as csvfile: # handles closing the file automatically    
+        movie_fieldnames = [
+            'title',
+            'titleSort',
+            'year',
+            'genres',
+            'duration',
+            'studio',
+            'tagline',
+            'summary',
+            'originallyAvailableAt',
+            'imdb_id',
+            'tmdb_id'
+        ] # defines the column headers, and the order they appear in the CSV
+        
+        show_fieldnames = [
+            'seasonCount',
+            'leafCount',
+        ] # defines the column headers, and the order they appear in the CSV
+        
+        if selected_type == 'show':
+            fieldnames = movie_fieldnames + show_fieldnames
+        else:
+            fieldnames = movie_fieldnames
+
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader() # writes the first row with column names
+        writer.writerows(media_list) # writes all the dictionaries in one go
+
+
+# List and select library
 libraries = list_libraries(plex)
 selected_library = library_confirmation(libraries)
 selected_title = selected_library['library_title']
 selected_type = selected_library['library_type']
 
-# Store all media items
-media_list = []
-
-# Access the selected library
+# Fetch all items from the selected library
 media = plex.library.section(selected_title)
 all_items = media.all()
 total = len(all_items)
 
-# Add all media details to a list of dictionaries
-for index, item in enumerate(all_items, start=1):
-    item_data = {
-        'title': item.title,
-        'titleSort': item.titleSort,
-        'year': item.year,
-        'genres': get_genres(item.genres),
-        'duration': item.duration // 60000 if item.duration else None,
-        'studio': item.studio,
-        'tagline': item.tagline,
-        'summary': item.summary,
-        'originallyAvailableAt': item.originallyAvailableAt.strftime('%Y-%m-%d') if item.originallyAvailableAt else None,
-        'imdb_id': get_guid(item.guids, 'imdb'),
-        'tmdb_id': get_guid(item.guids, 'tmdb')
-    }
-
-    if selected_type == 'show':
-        item_data['seasonCount'] = item.seasonCount
-        item_data['leafCount'] = item.leafCount
-
-    media_list.append(item_data)
-
-    # Progress indicator while collecting data
-    # \r moves the cursor back to the start of the line
-    # end='' prevents a new line being printed
-    # flush=True forces it to display immediately
-    print(f"\rExporting... {index}/{total}", end='', flush=True)
-print()  # move to next line after progress is done
-
-# Check if filename already exists and finalise the filename
-filename = f"{selected_title}.csv"
-while True:
-    if os.path.exists(filename):
-        print(f"-" * 70)
-        new_filename = input(f'The "{filename}" already exists. Press "Enter" to overwrite, type a new name, or "q" to quit: ')
-        if new_filename == 'q':  # file exists, user quit the program
-            sys.exit()
-        elif new_filename != '':  # file exists, user types a new name, loop again to recheck
-            filename = f"{new_filename}.csv"
-        else:  # file exists, user confirmed overwrite
-            break
-    else:
-        break  # file doesn't exist, continue
-
-
-# Write collected media data to CSV
-with open(f"{filename}", 'w', newline='') as csvfile: # handles closing the file automatically    
-    movie_fieldnames = [
-        'title',
-        'titleSort',
-        'year',
-        'genres',
-        'duration',
-        'studio',
-        'tagline',
-        'summary',
-        'originallyAvailableAt',
-        'imdb_id',
-        'tmdb_id'
-    ] # defines the column headers, and the order they appear in the CSV
-    
-    show_fieldnames = [
-        'seasonCount',
-        'leafCount',
-    ] # defines the column headers, and the order they appear in the CSV
-    
-    if selected_type == 'show':
-        fieldnames = movie_fieldnames + show_fieldnames
-    else:
-        fieldnames = movie_fieldnames
-
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader() # writes the first row with column names
-    writer.writerows(media_list) # writes all the dictionaries in one go
-
+# Collect, export
+media_list = collect_media(all_items, selected_type, total)
+filename = get_filename(selected_title)
+export_to_csv(media_list, filename, selected_type)
