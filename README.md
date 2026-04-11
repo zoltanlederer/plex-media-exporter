@@ -29,7 +29,7 @@ PLEX_TOKEN = "YOUR_TOKEN_HERE"
 
 ## Usage
 ```bash
-python plex_exporter.py
+python3 plex_exporter.py
 ```
 
 ## Example
